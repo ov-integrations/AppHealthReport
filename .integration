@@ -1,0 +1,4 @@
+command = 
+settings_file_name = 
+default_schedule = 0 0/5 * * * ?
+read_from_stdout = false
