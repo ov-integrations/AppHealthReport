@@ -265,7 +265,7 @@ begin
         SUBJECT =&gt; v_new_file_name,
         MESSAGE =&gt; v_message,
         SENDER =&gt; &apos;&apos;,
-        RECIPIENT =&gt; &apos;iemelyanov@onevizion.com&apos;,
+        RECIPIENT =&gt; &apos;noc-reports@onevizion.com&apos;,
         STYLE =&gt; &apos;text&apos;,
         ATTACHBLOBDATAID1 =&gt; v_blob_data_id
     );
