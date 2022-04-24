@@ -266,7 +266,7 @@ begin
         MESSAGE =&gt; v_message,
         SENDER =&gt; &apos;&apos;,
         RECIPIENT =&gt; &apos;noc-reports@onevizion.com&apos;,
-        STYLE =&gt; &apos;text&apos;,
+        STYLE =&gt; &apos;html&apos;,
         ATTACHBLOBDATAID1 =&gt; v_blob_data_id
     );
 
