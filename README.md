@@ -1,5 +1,7 @@
 # app-health-report
 
+The Module collects data on errors with components in the installation and sends them to a special mail for studying these errors.
+
 The Module contains AppHealthReport components
 | Component | Description | Additional Information |
 | --- | --- | --- |
