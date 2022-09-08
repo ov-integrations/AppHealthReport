@@ -266,7 +266,7 @@ begin
         MESSAGE =&gt; v_message,
         SENDER =&gt; &apos;&apos;,
         RECIPIENT =&gt; &apos;noc-reports@onevizion.com&apos;,
-        STYLE =&gt; &apos;html&apos;,
+        STYLE =&gt; &apos;text&apos;,
         ATTACHBLOBDATAID1 =&gt; v_blob_data_id
     );
 
@@ -300,6 +300,7 @@ end;</SQL_TEXT>
     <NAME>App Health Report</NAME>
     <PROGRAM_ID>1</PROGRAM_ID>
     <BPD_ITEMS/>
+    <IS_LOCKED>0</IS_LOCKED>
    </T_BPL_COMP_PKG>
   </COMPONENT_PACKAGES>
   <CONFIG_FIELD_IDNUMS/>
@@ -419,6 +420,7 @@ end;</SQL_TEXT>
     <NAME>App Health Report</NAME>
     <PROGRAM_ID>1</PROGRAM_ID>
     <BPD_ITEMS/>
+    <IS_LOCKED>0</IS_LOCKED>
    </T_BPL_COMP_PKG>
   </COMPONENT_PACKAGES>
   <CONFIG_FIELD_IDNUMS/>
@@ -453,7 +455,7 @@ end;</SQL_TEXT>
   <TEMPLATE_FILENAME>Weekly App Health Report.xlsx</TEMPLATE_FILENAME>
   <REPORT_FIELDS>
    <T_REPORT_FIELD>
-    <FIELD_NAME>Process Object Name</FIELD_NAME>
+    <FIELD_NAME>process object name</FIELD_NAME>
     <IS_FLATTEN>0</IS_FLATTEN>
     <IS_IMAGE>0</IS_IMAGE>
     <REPORT_FIELD_ID>101403</REPORT_FIELD_ID>
@@ -461,7 +463,7 @@ end;</SQL_TEXT>
     <FIT_IMAGE_TO_FILL_CELL>0</FIT_IMAGE_TO_FILL_CELL>
     <REPORT_FIELD_ACTIONS>
      <T_REPORT_FIELD_ACTION>
-      <ACTION_PARAM>Link</ACTION_PARAM>
+      <ACTION_PARAM>link</ACTION_PARAM>
       <REPORT_FIELD_ACTION_ID>101243</REPORT_FIELD_ACTION_ID>
       <REPORT_FIELD_ACTION_TYPE_ID>4</REPORT_FIELD_ACTION_TYPE_ID>
       <REPORT_FIELD_ID>101403</REPORT_FIELD_ID>
@@ -510,37 +512,35 @@ end;</SQL_TEXT>
     <REPORT_PATTERN_BLOCK_ID>1002883</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1002983</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-        from dual
-  )
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
 
-select t_log.tm_log_id &quot;TM Log ID&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=TRACKOR_MAIL_LOG&apos; &quot;Link&quot;,
-       t_status.name &quot;Status&quot;,
-       t_log.ts &quot;Timestamp&quot;,
-       t_xitor_type.xitor_type &quot;Trackor Type&quot;,
-       t_log.from_address &quot;From Address&quot;,
-       t_log.to_address &quot;To Address&quot;,
-       t_log.subject &quot;Subject&quot;,
-       t_log.error_message &quot;Error Message&quot;
+select t_log.tm_log_id as &quot;tm log id&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=TRACKOR_MAIL_LOG&apos; as &quot;link&quot;,
+       t_status.name as &quot;status&quot;,
+       t_log.ts as &quot;timestamp&quot;,
+       t_xitor_type.xitor_type as &quot;trackor type&quot;,
+       t_log.from_address as &quot;from address&quot;,
+       t_log.to_address as &quot;to address&quot;,
+       t_log.subject as &quot;subject&quot;,
+       t_log.error_message as &quot;error message&quot;
   from tm_log t_log
-  join dates on (1 = 1)
-  join tm_log_status t_status on (
-       t_status.tm_log_status_id = t_log.status_id
-  )
-  join tm_setup t_setup on (
-       t_setup.tm_setup_id = t_log.tm_setup_id
-  )
-  join xitor_type t_xitor_type on (
-       t_xitor_type.xitor_type_id = t_setup.xitor_type_id
-  ),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
- where t_log.ts between dates.start_date and dates.end_date
-   and t_log.status_id in (1 /*Processing error*/, 3 /*Processing error (TF)*/, 4 /*Job error*/)</SQL_TEXT>
+  join dates on 1 = 1
+  join tm_log_status t_status on t_status.tm_log_status_id = t_log.status_id
+                             and t_log.ts between dates.start_date and dates.end_date
+                             and t_log.status_id in (1 /*Processing error*/, 3 /*Processing error (TF)*/, 4 /*Job error*/)
+  join tm_setup t_setup on t_setup.tm_setup_id = t_log.tm_setup_id
+  join xitor_type t_xitor_type on t_xitor_type.xitor_type_id = t_setup.xitor_type_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain</SQL_TEXT>
     <SQL_TYPE>1</SQL_TYPE>
     <REPORT_SQL_COLS/>
    </T_REPORT_SQL>
@@ -552,23 +552,28 @@ select t_log.tm_log_id &quot;TM Log ID&quot;,
     <REPORT_PATTERN_BLOCK_ID>1003363</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1003603</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>with dates as (
-    select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-           case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-)
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
 
-select pt.process_type &quot;P_TYPE&quot;,
-       case when sum(nvl(runtime, 0)) = 0 then 0 else count(*) end &quot;COUNT&quot;,
-       sum(nvl(runtime, 0)) &quot;SUM&quot;,
-       max(nvl(runtime, 0)) &quot;MAX&quot;,
-       round(avg(nvl(runtime, 0)), 2) &quot;AVRG&quot;
+select pt.process_type as p_type,
+       case when sum(nvl(runtime, 0)) = 0
+            then 0
+            else count(*)
+        end &quot;count&quot;,
+       sum(nvl(runtime, 0)) as &quot;sum&quot;,
+       max(nvl(runtime, 0)) as &quot;max&quot;,
+       round(avg(nvl(runtime, 0)), 2) as &quot;avrg&quot;
   from process_type pt
-  join dates on (1=1)
-  left join process p on (
-       p.process_type_id = pt.process_type_id
-       and p.submission_date between dates.start_date and dates.end_date
-  )
+  join dates on 1 = 1
+  left join process p on p.process_type_id = pt.process_type_id
+                     and p.submission_date between dates.start_date and dates.end_date
  where pt.process_type_id &lt;&gt; 4 /*Data Submit*/
  group by pt.process_type
  order by pt.process_type</SQL_TEXT>
@@ -583,35 +588,34 @@ select pt.process_type &quot;P_TYPE&quot;,
     <REPORT_PATTERN_BLOCK_ID>1002645</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1002665</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>  with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/reports/Form.do?id=&apos; || rf.report_file_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select rf.report_name as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/reports/Form.do?id=&apos; || rf.report_file_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join report_run rfr on rfr.process_id = p.process_id
+  left join report_files rf on rf.report_file_id = rfr.report_file_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (1 /*Report*/)
+   and p.process_type_id = 1 /*Report*/
    and p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)</SQL_TEXT>
     <SQL_TYPE>1</SQL_TYPE>
     <REPORT_SQL_COLS/>
@@ -624,47 +628,44 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
     <REPORT_PATTERN_BLOCK_ID>1002646</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1002666</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>  with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/rules/Form.do?id=&apos; || r.rule_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;,
-       u1.un &quot;Created By&quot;,
-       u2.un &quot;Modified By&quot;
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select r.rule as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/rules/Form.do?id=&apos; || r.rule_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;,
+       u1.un as &quot;created by&quot;,
+       u2.un as &quot;modified by&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id)
-  left join comp_object_log col on (
-      col.component_id = 4 /*Rule*/
-      and col.object_id = r.rule_id
-  )
-  left join users u1 on (u1.user_id = col.created_by)
-  left join users u2 on (u2.user_id = col.modified_by),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join rule_run rr on rr.process_id = p.process_id
+  left join rule r on r.rule_id = rr.rule_id
+  left join comp_object_log col on col.component_id = 4 /*Rule*/
+                               and col.object_id = r.rule_id
+  left join users u1 on u1.user_id = col.created_by
+  left join users u2 on u2.user_id = col.modified_by,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (6 /*Rule*/)
+   and p.process_type_id = 6 /*Rule*/
    and (
        p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)
-       or (p.status_id in (0 /*Pending*/, 4 /*In Queue*/) and p.start_date &lt; current_date)
-   )</SQL_TEXT>
+       or (p.status_id in(0 /*Pending*/ , 4 /*In Queue*/)
+          and p.start_date &lt; current_date))</SQL_TEXT>
     <SQL_TYPE>1</SQL_TYPE>
     <REPORT_SQL_COLS/>
    </T_REPORT_SQL>
@@ -676,37 +677,39 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
     <REPORT_PATTERN_BLOCK_ID>1002723</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1002803</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
 
-select t_nq.notif_queue_id &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=ADMIN_NOTIF_QUEUE&apos; &quot;Link&quot;,
-       t_nq.to_address &quot;Recipient (Email)&quot;,
-       t_nq.subj &quot;Subject&quot;,
-       case when t_nq.queue_status_id = 4 then &apos;Failed. No more attempts&apos; end &quot;Status&quot;,
-       to_char(t_nq.created_ts, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(t_nq.processed_ts, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       t_nqa.err_code &quot;Error Message&quot;
+select t_nq.notif_queue_id as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=ADMIN_NOTIF_QUEUE&apos; as &quot;link&quot;,
+       t_nq.to_address as &quot;recipient (email)&quot;,
+       t_nq.subj as &quot;subject&quot;,
+       case when t_nq.queue_status_id = 4
+            then &apos;Failed. No more attempts&apos;
+        end &quot;status&quot;,
+       to_char(t_nq.created_ts, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(t_nq.processed_ts, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       t_nqa.err_code as &quot;error message&quot;
   from notif_queue t_nq
-  join notif_queue_attempt t_nqa on (
-       t_nqa.notif_queue_id = t_nq.notif_queue_id
-  )
-  join (select t_nq.notif_queue_id &quot;Process Object Name&quot;,
-               max(t_nqa.notif_queue_attempt_id) &quot;LAST_ATTEMPT_ID&quot;
-         from notif_queue t_nq
-          join dates on (1 = 1)
-          join notif_queue_attempt t_nqa on (
-               t_nqa.notif_queue_id = t_nq.notif_queue_id
-          )
-         where t_nq.created_ts between dates.start_date and dates.end_date
-           and t_nq.queue_status_id = 4 /*Failed. No more attempts*/
+  join notif_queue_attempt t_nqa on t_nqa.notif_queue_id = t_nq.notif_queue_id
+  join (select t_nq.notif_queue_id as &quot;process object name&quot;,
+               max(t_nqa.notif_queue_attempt_id) as last_attempt_id
+          from notif_queue t_nq
+          join dates on 1 = 1
+          join notif_queue_attempt t_nqa on t_nqa.notif_queue_id = t_nq.notif_queue_id
+                                        and t_nq.created_ts between dates.start_date and dates.end_date
+                                        and t_nq.queue_status_id = 4 /*Failed. No more attempts*/
          group by t_nq.notif_queue_id) t_filter_notif on (t_filter_notif.last_attempt_id = t_nqa.notif_queue_attempt_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain</SQL_TEXT>
+         (select value
+            from param_system
+           where name = &apos;DomainName&apos;) t_domain</SQL_TEXT>
     <SQL_TYPE>1</SQL_TYPE>
     <REPORT_SQL_COLS/>
    </T_REPORT_SQL>
@@ -718,39 +721,38 @@ select t_nq.notif_queue_id &quot;Process Object Name&quot;,
     <REPORT_PATTERN_BLOCK_ID>1002643</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1002663</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/configimport/Form.do?id=&apos; || isp.imp_spec_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select isp.name as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/configimport/Form.do?id=&apos; || isp.imp_spec_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join imp_run ir on ir.process_id = p.process_id
+  left join imp_spec isp on ir.imp_spec_id = isp.imp_spec_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (2 /*Import*/)
+   and p.process_type_id = 2 /*Import*/
    and (
        p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)
-       or (p.status_id in (0 /*Pending*/, 4 /*In Queue*/) and p.start_date &lt; current_date)
-   )</SQL_TEXT>
+       or (p.status_id in(0 /*Pending*/ , 4 /*In Queue*/)
+          and p.start_date &lt; current_date))</SQL_TEXT>
     <SQL_TYPE>1</SQL_TYPE>
     <REPORT_SQL_COLS/>
    </T_REPORT_SQL>
@@ -762,39 +764,38 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
     <REPORT_PATTERN_BLOCK_ID>1002644</REPORT_PATTERN_BLOCK_ID>
     <REPORT_SQL_ID>1002664</REPORT_SQL_ID>
     <SQL_NAME>Pattern Block SQL</SQL_NAME>
-    <SQL_TEXT>  with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/integrationrun/Form.do?id=&apos; || p.process_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;
+    <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select i.integration_name as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/integrationrun/Form.do?id=&apos; || p.process_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join integration_run ir on ir.process_id = p.process_id
+  left join integration i on i.integration_id = ir.integration_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (5 /*Integration*/)
+   and p.process_type_id = 5 /*Integration*/
    and (
        p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)
-       or (p.status_id in (0 /*Pending*/, 4 /*In Queue*/) and p.start_date &lt; current_date)
-   )</SQL_TEXT>
+       or (p.status_id in(0 /*Pending*/ , 4 /*In Queue*/)
+          and p.start_date &lt; current_date))</SQL_TEXT>
     <SQL_TYPE>1</SQL_TYPE>
     <REPORT_SQL_COLS/>
    </T_REPORT_SQL>
@@ -821,39 +822,38 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <REPORT_PATTERN_BLOCK_ID>1002643</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1002663</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/configimport/Form.do?id=&apos; || isp.imp_spec_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select isp.name as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/configimport/Form.do?id=&apos; || isp.imp_spec_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join imp_run ir on ir.process_id = p.process_id
+  left join imp_spec isp on ir.imp_spec_id = isp.imp_spec_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (2 /*Import*/)
+   and p.process_type_id = 2 /*Import*/
    and (
        p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)
-       or (p.status_id in (0 /*Pending*/, 4 /*In Queue*/) and p.start_date &lt; current_date)
-   )</SQL_TEXT>
+       or (p.status_id in(0 /*Pending*/ , 4 /*In Queue*/)
+          and p.start_date &lt; current_date))</SQL_TEXT>
         <SQL_TYPE>1</SQL_TYPE>
         <REPORT_SQL_COLS/>
        </T_REPORT_SQL>
@@ -864,49 +864,49 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006803</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process Object Name</SQL_COL_NAME>
+        <SQL_COL_NAME>process object name</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006804</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process ID</SQL_COL_NAME>
+        <SQL_COL_NAME>process id</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006805</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Status</SQL_COL_NAME>
+        <SQL_COL_NAME>status</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006806</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Owner</SQL_COL_NAME>
+        <SQL_COL_NAME>owner</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006807</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Submitted</SQL_COL_NAME>
+        <SQL_COL_NAME>submitted</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>F</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>6</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006808</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Scheduled</SQL_COL_NAME>
+        <SQL_COL_NAME>scheduled</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>G</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>7</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006809</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Error Message</SQL_COL_NAME>
+        <SQL_COL_NAME>error message</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -916,7 +916,7 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
     <REPORT_WORKSHEET_IMGS/>
    </T_REPORT_WORKSHEET>
    <T_REPORT_WORKSHEET>
-    <REPORT_WORKSHEET_ID>1002884</REPORT_WORKSHEET_ID>
+    <REPORT_WORKSHEET_ID>1004012</REPORT_WORKSHEET_ID>
     <WORKSHEET>Integrations</WORKSHEET>
     <REPORT_PATTERN_BLOCKS>
      <T_REPORT_PATTERN_BLOCK>
@@ -926,7 +926,7 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
       <PATTERN_BLOCK_NAME>Integrations</PATTERN_BLOCK_NAME>
       <REPORT_FILL_MODE_ID>1</REPORT_FILL_MODE_ID>
       <REPORT_PATTERN_BLOCK_ID>1002644</REPORT_PATTERN_BLOCK_ID>
-      <REPORT_WORKSHEET_ID>1002884</REPORT_WORKSHEET_ID>
+      <REPORT_WORKSHEET_ID>1004012</REPORT_WORKSHEET_ID>
       <REPORT_SQLS>
        <T_REPORT_SQL>
         <INCREASE_FIELD_HEIGHT>0</INCREASE_FIELD_HEIGHT>
@@ -936,39 +936,38 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <REPORT_PATTERN_BLOCK_ID>1002644</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1002664</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>  with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/integrationrun/Form.do?id=&apos; || p.process_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select i.integration_name as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/integrationrun/Form.do?id=&apos; || p.process_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join integration_run ir on ir.process_id = p.process_id
+  left join integration i on i.integration_id = ir.integration_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (5 /*Integration*/)
+   and p.process_type_id = 5 /*Integration*/
    and (
        p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)
-       or (p.status_id in (0 /*Pending*/, 4 /*In Queue*/) and p.start_date &lt; current_date)
-   )</SQL_TEXT>
+       or (p.status_id in(0 /*Pending*/ , 4 /*In Queue*/)
+          and p.start_date &lt; current_date))</SQL_TEXT>
         <SQL_TYPE>1</SQL_TYPE>
         <REPORT_SQL_COLS/>
        </T_REPORT_SQL>
@@ -979,49 +978,49 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006810</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process Object Name</SQL_COL_NAME>
+        <SQL_COL_NAME>process object name</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006811</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process ID</SQL_COL_NAME>
+        <SQL_COL_NAME>process id</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006812</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Status</SQL_COL_NAME>
+        <SQL_COL_NAME>status</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006813</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Owner</SQL_COL_NAME>
+        <SQL_COL_NAME>owner</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006814</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Submitted</SQL_COL_NAME>
+        <SQL_COL_NAME>submitted</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>F</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>6</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006815</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Scheduled</SQL_COL_NAME>
+        <SQL_COL_NAME>scheduled</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>G</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>7</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006816</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Error Message</SQL_COL_NAME>
+        <SQL_COL_NAME>error message</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -1051,37 +1050,39 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <REPORT_PATTERN_BLOCK_ID>1002723</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1002803</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
 
-select t_nq.notif_queue_id &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=ADMIN_NOTIF_QUEUE&apos; &quot;Link&quot;,
-       t_nq.to_address &quot;Recipient (Email)&quot;,
-       t_nq.subj &quot;Subject&quot;,
-       case when t_nq.queue_status_id = 4 then &apos;Failed. No more attempts&apos; end &quot;Status&quot;,
-       to_char(t_nq.created_ts, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(t_nq.processed_ts, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       t_nqa.err_code &quot;Error Message&quot;
+select t_nq.notif_queue_id as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=ADMIN_NOTIF_QUEUE&apos; as &quot;link&quot;,
+       t_nq.to_address as &quot;recipient (email)&quot;,
+       t_nq.subj as &quot;subject&quot;,
+       case when t_nq.queue_status_id = 4
+            then &apos;Failed. No more attempts&apos;
+        end &quot;status&quot;,
+       to_char(t_nq.created_ts, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(t_nq.processed_ts, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       t_nqa.err_code as &quot;error message&quot;
   from notif_queue t_nq
-  join notif_queue_attempt t_nqa on (
-       t_nqa.notif_queue_id = t_nq.notif_queue_id
-  )
-  join (select t_nq.notif_queue_id &quot;Process Object Name&quot;,
-               max(t_nqa.notif_queue_attempt_id) &quot;LAST_ATTEMPT_ID&quot;
-         from notif_queue t_nq
-          join dates on (1 = 1)
-          join notif_queue_attempt t_nqa on (
-               t_nqa.notif_queue_id = t_nq.notif_queue_id
-          )
-         where t_nq.created_ts between dates.start_date and dates.end_date
-           and t_nq.queue_status_id = 4 /*Failed. No more attempts*/
+  join notif_queue_attempt t_nqa on t_nqa.notif_queue_id = t_nq.notif_queue_id
+  join (select t_nq.notif_queue_id as &quot;process object name&quot;,
+               max(t_nqa.notif_queue_attempt_id) as last_attempt_id
+          from notif_queue t_nq
+          join dates on 1 = 1
+          join notif_queue_attempt t_nqa on t_nqa.notif_queue_id = t_nq.notif_queue_id
+                                        and t_nq.created_ts between dates.start_date and dates.end_date
+                                        and t_nq.queue_status_id = 4 /*Failed. No more attempts*/
          group by t_nq.notif_queue_id) t_filter_notif on (t_filter_notif.last_attempt_id = t_nqa.notif_queue_attempt_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain</SQL_TEXT>
+         (select value
+            from param_system
+           where name = &apos;DomainName&apos;) t_domain</SQL_TEXT>
         <SQL_TYPE>1</SQL_TYPE>
         <REPORT_SQL_COLS/>
        </T_REPORT_SQL>
@@ -1092,49 +1093,49 @@ select t_nq.notif_queue_id &quot;Process Object Name&quot;,
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009243</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process Object Name</SQL_COL_NAME>
+        <SQL_COL_NAME>process object name</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009683</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Recipient (Email)</SQL_COL_NAME>
+        <SQL_COL_NAME>recipient (email)</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009684</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Subject</SQL_COL_NAME>
+        <SQL_COL_NAME>subject</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009685</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Status</SQL_COL_NAME>
+        <SQL_COL_NAME>status</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009686</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Submitted</SQL_COL_NAME>
+        <SQL_COL_NAME>submitted</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>F</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>6</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009687</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Scheduled</SQL_COL_NAME>
+        <SQL_COL_NAME>scheduled</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>G</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>7</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009688</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Error Message</SQL_COL_NAME>
+        <SQL_COL_NAME>error message</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -1164,23 +1165,28 @@ select t_nq.notif_queue_id &quot;Process Object Name&quot;,
         <REPORT_PATTERN_BLOCK_ID>1003363</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1003603</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>with dates as (
-    select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-           case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-)
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
 
-select pt.process_type &quot;P_TYPE&quot;,
-       case when sum(nvl(runtime, 0)) = 0 then 0 else count(*) end &quot;COUNT&quot;,
-       sum(nvl(runtime, 0)) &quot;SUM&quot;,
-       max(nvl(runtime, 0)) &quot;MAX&quot;,
-       round(avg(nvl(runtime, 0)), 2) &quot;AVRG&quot;
+select pt.process_type as p_type,
+       case when sum(nvl(runtime, 0)) = 0
+            then 0
+            else count(*)
+        end &quot;count&quot;,
+       sum(nvl(runtime, 0)) as &quot;sum&quot;,
+       max(nvl(runtime, 0)) as &quot;max&quot;,
+       round(avg(nvl(runtime, 0)), 2) as &quot;avrg&quot;
   from process_type pt
-  join dates on (1=1)
-  left join process p on (
-       p.process_type_id = pt.process_type_id
-       and p.submission_date between dates.start_date and dates.end_date
-  )
+  join dates on 1 = 1
+  left join process p on p.process_type_id = pt.process_type_id
+                     and p.submission_date between dates.start_date and dates.end_date
  where pt.process_type_id &lt;&gt; 4 /*Data Submit*/
  group by pt.process_type
  order by pt.process_type</SQL_TEXT>
@@ -1194,35 +1200,35 @@ select pt.process_type &quot;P_TYPE&quot;,
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1011143</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>P_TYPE</SQL_COL_NAME>
+        <SQL_COL_NAME>p_type</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1011144</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>COUNT</SQL_COL_NAME>
+        <SQL_COL_NAME>count</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1011145</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>AVRG</SQL_COL_NAME>
+        <SQL_COL_NAME>avrg</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1011146</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>SUM</SQL_COL_NAME>
+        <SQL_COL_NAME>sum</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1011147</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>MAX</SQL_COL_NAME>
+        <SQL_COL_NAME>max</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -1252,35 +1258,34 @@ select pt.process_type &quot;P_TYPE&quot;,
         <REPORT_PATTERN_BLOCK_ID>1002645</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1002665</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>  with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/reports/Form.do?id=&apos; || rf.report_file_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select rf.report_name as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/reports/Form.do?id=&apos; || rf.report_file_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join report_run rfr on rfr.process_id = p.process_id
+  left join report_files rf on rf.report_file_id = rfr.report_file_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (1 /*Report*/)
+   and p.process_type_id = 1 /*Report*/
    and p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)</SQL_TEXT>
         <SQL_TYPE>1</SQL_TYPE>
         <REPORT_SQL_COLS/>
@@ -1292,49 +1297,49 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006817</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process Object Name</SQL_COL_NAME>
+        <SQL_COL_NAME>process object name</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006818</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process ID</SQL_COL_NAME>
+        <SQL_COL_NAME>process id</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006819</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Status</SQL_COL_NAME>
+        <SQL_COL_NAME>status</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006820</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Owner</SQL_COL_NAME>
+        <SQL_COL_NAME>owner</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006821</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Submitted</SQL_COL_NAME>
+        <SQL_COL_NAME>submitted</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>F</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>6</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006822</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Scheduled</SQL_COL_NAME>
+        <SQL_COL_NAME>scheduled</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>G</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>7</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006823</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Error Message</SQL_COL_NAME>
+        <SQL_COL_NAME>error message</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -1364,47 +1369,44 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <REPORT_PATTERN_BLOCK_ID>1002646</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1002666</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>  with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-      from dual
-  )
-select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process Object Name&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/admin/rules/Form.do?id=&apos; || r.rule_id &quot;Link&quot;,
-       p.process_id &quot;Process ID&quot;,
-       ps.status &quot;Status&quot;,
-       p.un &quot;Owner&quot;,
-       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) &quot;Submitted&quot;,
-       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) &quot;Scheduled&quot;,
-       p.error_message &quot;Error Message&quot;,
-       u1.un &quot;Created By&quot;,
-       u2.un &quot;Modified By&quot;
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
+
+select r.rule as &quot;process object name&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/admin/rules/Form.do?id=&apos; || r.rule_id as &quot;link&quot;,
+       p.process_id as &quot;process id&quot;,
+       ps.status as &quot;status&quot;,
+       p.un as &quot;owner&quot;,
+       to_char(p.submission_date, &apos;MM/DD/YYYY&apos;) as &quot;submitted&quot;,
+       to_char(p.start_date, &apos;MM/DD/YYYY&apos;) as &quot;scheduled&quot;,
+       p.error_message as &quot;error message&quot;,
+       u1.un as &quot;created by&quot;,
+       u2.un as &quot;modified by&quot;
   from process p
-  join dates on (1 = 1)
-  join process_status ps on (p.status_id = ps.process_status_id)
-  left join integration_run ir on (ir.process_id = p.process_id)
-  left join integration i on (i.integration_id = ir.integration_id)
-  left join rule_run rr on (rr.process_id = p.process_id)
-  left join rule r on (r.rule_id = rr.rule_id)
-  left join report_run rfr on (rfr.process_id = p.process_id)
-  left join report_files rf on (rf.report_file_id = rfr.report_file_id)
-  left join imp_run ir on (ir.process_id = p.process_id)
-  left join imp_spec isp on (ir.imp_spec_id = isp.imp_spec_id)
-  left join comp_object_log col on (
-      col.component_id = 4 /*Rule*/
-      and col.object_id = r.rule_id
-  )
-  left join users u1 on (u1.user_id = col.created_by)
-  left join users u2 on (u2.user_id = col.modified_by),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
+  join dates on 1 = 1
+  join process_status ps on p.status_id = ps.process_status_id
+  left join rule_run rr on rr.process_id = p.process_id
+  left join rule r on r.rule_id = rr.rule_id
+  left join comp_object_log col on col.component_id = 4 /*Rule*/
+                               and col.object_id = r.rule_id
+  left join users u1 on u1.user_id = col.created_by
+  left join users u2 on u2.user_id = col.modified_by,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain
  where p.submission_date between dates.start_date and dates.end_date
-   and p.process_type_id in (6 /*Rule*/)
+   and p.process_type_id = 6 /*Rule*/
    and (
        p.status_id in (3 /*Executed with Errors*/, 14 /*Interrupted*/, 20 /*Canceled: Num Cells Limit Exceeded*/)
-       or (p.status_id in (0 /*Pending*/, 4 /*In Queue*/) and p.start_date &lt; current_date)
-   )</SQL_TEXT>
+       or (p.status_id in(0 /*Pending*/ , 4 /*In Queue*/)
+          and p.start_date &lt; current_date))</SQL_TEXT>
         <SQL_TYPE>1</SQL_TYPE>
         <REPORT_SQL_COLS/>
        </T_REPORT_SQL>
@@ -1415,63 +1417,63 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006824</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process Object Name</SQL_COL_NAME>
+        <SQL_COL_NAME>process object name</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006825</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Process ID</SQL_COL_NAME>
+        <SQL_COL_NAME>process id</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006826</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Status</SQL_COL_NAME>
+        <SQL_COL_NAME>status</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006827</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Owner</SQL_COL_NAME>
+        <SQL_COL_NAME>owner</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006828</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Submitted</SQL_COL_NAME>
+        <SQL_COL_NAME>submitted</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>F</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>6</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006829</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Scheduled</SQL_COL_NAME>
+        <SQL_COL_NAME>scheduled</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>G</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>7</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006830</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Error Message</SQL_COL_NAME>
+        <SQL_COL_NAME>error message</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>H</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>8</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006831</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Created By</SQL_COL_NAME>
+        <SQL_COL_NAME>created by</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>I</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>9</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1006832</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Modified By</SQL_COL_NAME>
+        <SQL_COL_NAME>modified by</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -1501,37 +1503,35 @@ select rf.report_name || isp.name || i.integration_name || r.rule &quot;Process 
         <REPORT_PATTERN_BLOCK_ID>1002883</REPORT_PATTERN_BLOCK_ID>
         <REPORT_SQL_ID>1002983</REPORT_SQL_ID>
         <SQL_NAME>Pattern Block SQL</SQL_NAME>
-        <SQL_TEXT>with dates as (
-      select case when :start_date_null is null then current_date - 7 else to_date(:start_date, &apos;MM/DD/YYYY&apos;) end start_date,
-             case when :end_date_null is null then current_date else to_date(:end_date, &apos;MM/DD/YYYY&apos;) end end_date
-        from dual
-  )
+        <SQL_TEXT>with dates as (select case when :start_date_null is null
+                           then current_date - 7
+                           else to_date(:start_date, &apos;MM/DD/YYYY&apos;)
+                       end start_date,
+                      case when :end_date_null is null
+                           then current_date
+                           else to_date(:end_date, &apos;MM/DD/YYYY&apos;)
+                       end end_date
+                 from dual)
 
-select t_log.tm_log_id &quot;TM Log ID&quot;,
-       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=TRACKOR_MAIL_LOG&apos; &quot;Link&quot;,
-       t_status.name &quot;Status&quot;,
-       t_log.ts &quot;Timestamp&quot;,
-       t_xitor_type.xitor_type &quot;Trackor Type&quot;,
-       t_log.from_address &quot;From Address&quot;,
-       t_log.to_address &quot;To Address&quot;,
-       t_log.subject &quot;Subject&quot;,
-       t_log.error_message &quot;Error Message&quot;
+select t_log.tm_log_id as &quot;tm log id&quot;,
+       &apos;https://&apos; || t_domain.value || &apos;/grid/SimpleGrid.do?ModuleName=TRACKOR_MAIL_LOG&apos; as &quot;link&quot;,
+       t_status.name as &quot;status&quot;,
+       t_log.ts as &quot;timestamp&quot;,
+       t_xitor_type.xitor_type as &quot;trackor type&quot;,
+       t_log.from_address as &quot;from address&quot;,
+       t_log.to_address as &quot;to address&quot;,
+       t_log.subject as &quot;subject&quot;,
+       t_log.error_message as &quot;error message&quot;
   from tm_log t_log
-  join dates on (1 = 1)
-  join tm_log_status t_status on (
-       t_status.tm_log_status_id = t_log.status_id
-  )
-  join tm_setup t_setup on (
-       t_setup.tm_setup_id = t_log.tm_setup_id
-  )
-  join xitor_type t_xitor_type on (
-       t_xitor_type.xitor_type_id = t_setup.xitor_type_id
-  ),
-  (select value
-     from param_system
-    where name=&apos;DomainName&apos;) t_domain
- where t_log.ts between dates.start_date and dates.end_date
-   and t_log.status_id in (1 /*Processing error*/, 3 /*Processing error (TF)*/, 4 /*Job error*/)</SQL_TEXT>
+  join dates on 1 = 1
+  join tm_log_status t_status on t_status.tm_log_status_id = t_log.status_id
+                             and t_log.ts between dates.start_date and dates.end_date
+                             and t_log.status_id in (1 /*Processing error*/, 3 /*Processing error (TF)*/, 4 /*Job error*/)
+  join tm_setup t_setup on t_setup.tm_setup_id = t_log.tm_setup_id
+  join xitor_type t_xitor_type on t_xitor_type.xitor_type_id = t_setup.xitor_type_id,
+       (select value
+          from param_system
+         where name = &apos;DomainName&apos;) t_domain</SQL_TEXT>
         <SQL_TYPE>1</SQL_TYPE>
         <REPORT_SQL_COLS/>
        </T_REPORT_SQL>
@@ -1542,56 +1542,56 @@ select t_log.tm_log_id &quot;TM Log ID&quot;,
         <PATTERN_BLOCK_COL_IDX>1</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009663</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>TM Log ID</SQL_COL_NAME>
+        <SQL_COL_NAME>tm log id</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>B</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>2</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009664</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Status</SQL_COL_NAME>
+        <SQL_COL_NAME>status</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>C</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>3</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009665</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Timestamp</SQL_COL_NAME>
+        <SQL_COL_NAME>timestamp</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>D</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>4</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009666</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Trackor Type</SQL_COL_NAME>
+        <SQL_COL_NAME>trackor type</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>E</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>5</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009667</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>From Address</SQL_COL_NAME>
+        <SQL_COL_NAME>from address</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>F</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>6</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009668</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>To Address</SQL_COL_NAME>
+        <SQL_COL_NAME>to address</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>G</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>7</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009669</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Subject</SQL_COL_NAME>
+        <SQL_COL_NAME>subject</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
        <T_REPORT_COL_MAPPING>
         <PATTERN_BLOCK_COL>H</PATTERN_BLOCK_COL>
         <PATTERN_BLOCK_COL_IDX>8</PATTERN_BLOCK_COL_IDX>
         <PATTERN_BLOCK_ROW>1</PATTERN_BLOCK_ROW>
         <REPORT_COL_MAPPING_ID>1009670</REPORT_COL_MAPPING_ID>
-        <SQL_COL_NAME>Error Message</SQL_COL_NAME>
+        <SQL_COL_NAME>error message</SQL_COL_NAME>
        </T_REPORT_COL_MAPPING>
       </REPORT_COL_MAPPINGS>
       <IS_TB_GRID>0</IS_TB_GRID>
@@ -1613,6 +1613,7 @@ select t_log.tm_log_id &quot;TM Log ID&quot;,
     <NAME>App Health Report</NAME>
     <PROGRAM_ID>1</PROGRAM_ID>
     <BPD_ITEMS/>
+    <IS_LOCKED>0</IS_LOCKED>
    </T_BPL_COMP_PKG>
   </COMPONENT_PACKAGES>
   <BPD_ITEMS/>
